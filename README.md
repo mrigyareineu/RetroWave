@@ -12,31 +12,6 @@ A modern, retro-inspired React application built with Vite, Tailwind CSS, and in
 - **Sound Effects**: Integrated audio system for interactive feedback
 - **Retro Aesthetic**: Designed with a nostalgic, retro-wave visual style
 
-## 📁 Project Structure
-
-```
-react-app/
-├── src/
-│   ├── App.jsx                 # Main application component
-│   ├── index.css              # Global Tailwind CSS styles
-│   ├── main.jsx               # Application entry point
-│   └── components/
-│       ├── RetroWaveApp.jsx    # Retro-wave themed main component
-│       ├── Wave.jsx            # Wave animation component
-│       ├── Icon.jsx            # Icon component
-│       └── DraggableWindow.jsx  # Draggable window wrapper component
-├── public/
-│   └── sounds/                # Audio files directory
-│       ├── click.mp3
-│       └── hover.mp3
-├── index.html                 # HTML entry point with Howler.js CDN
-├── package.json               # Dependencies and scripts
-├── vite.config.js             # Vite configuration
-├── tailwind.config.js         # Tailwind CSS configuration
-├── postcss.config.js          # PostCSS configuration
-└── README.md                  # This file
-```
-
 ## 🚀 Quick Start
 
 ### Prerequisites
