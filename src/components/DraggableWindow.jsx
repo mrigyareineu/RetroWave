@@ -190,6 +190,7 @@
 
 
 
+
 import React, { useState, useEffect } from "react";
 
 /* 🎨 WINDOW THEMES */
@@ -204,6 +205,11 @@ const WINDOW_THEMES = {
     accent: "pink-300",
     icon: "🐱",
   },
+  dino: {
+    header: "bg-green-600 border-green-900 text-white",
+    accent: "green-400",
+    icon: "🦖",
+  },
   default: {
     header: "bg-neutral-800 border-neutral-400 text-neutral-200",
     accent: "neutral-400",
@@ -214,6 +220,8 @@ const WINDOW_THEMES = {
 const DraggableWindow = ({
   title,
   onClose,
+  onFocus, // Added focus trigger
+  zIndex,  // Receive zIndex from parent
   initialX = 50,
   initialY = 50,
   variant = "default",
@@ -241,6 +249,7 @@ const DraggableWindow = ({
   });
 
   const handleMouseDown = (e) => {
+    onFocus(); // Bring to front when clicked
     if (
       e.target.closest(".resize-handle") ||
       e.target.closest(".window-controls")
@@ -252,6 +261,7 @@ const DraggableWindow = ({
 
   const handleResizeMouseDown = (e) => {
     e.stopPropagation();
+    onFocus(); // Bring to front when resizing
     setIsResizing(true);
     setResizeStart({
       x: e.clientX,
@@ -262,6 +272,7 @@ const DraggableWindow = ({
   };
 
   const handleMaximize = () => {
+    onFocus();
     if (isMaximized) {
       setSize(savedSize);
       setPosition(savedPosition);
@@ -276,11 +287,13 @@ const DraggableWindow = ({
     }
   };
 
-  const handleMinimize = () => {
+  const handleMinimize = (e) => {
+    e.stopPropagation(); // Prevent trigger focus if we are hiding it
     if (isMinimized) {
       setSize(savedSize);
       setPosition(savedPosition);
       setIsMinimized(false);
+      onFocus();
     } else {
       setSavedSize(size);
       setSavedPosition(position);
@@ -327,14 +340,15 @@ const DraggableWindow = ({
 
   return (
     <div
-      className="fixed shadow-2xl rounded-lg overflow-hidden flex flex-col"
+      className="fixed shadow-2xl rounded-lg overflow-hidden flex flex-col border border-white/10"
       style={{
         left: position.x,
         top: position.y,
         width: size.width,
         height: size.height,
-        zIndex: isDragging ? 1100 : 1000,
+        zIndex: zIndex, // Using dynamic Z-Index from parent
       }}
+      onMouseDown={() => onFocus()} // Focus window on any click
     >
       {/* 🧢 HEADER */}
       <div
@@ -346,22 +360,24 @@ const DraggableWindow = ({
         </span>
 
         <div className="window-controls flex gap-3 text-sm">
-          <button onClick={handleMinimize}>_</button>
-          <button onClick={handleMaximize}>□</button>
-          <button onClick={onClose} className="hover:text-red-600">
+          <button className="hover:opacity-70" onClick={handleMinimize}>_</button>
+          <button className="hover:opacity-70" onClick={handleMaximize}>□</button>
+          <button onClick={(e) => { e.stopPropagation(); onClose(); }} className="hover:text-red-600">
             ×
           </button>
         </div>
       </div>
 
       {/* 🪟 CONTENT */}
-      <div className={`flex-1 relative bg-black ${isMinimized ? "hidden" : ""}`}>
+      <div
+        className={`flex-1 relative bg-black ${isMinimized ? "hidden" : ""}`}
+      >
         {children}
 
         {/* ↘ RESIZE */}
         <div
           onMouseDown={handleResizeMouseDown}
-          className={`resize-handle absolute bottom-0 right-0 w-4 h-4 cursor-se-resize hover:bg-${theme.accent}/50`}
+          className={`resize-handle absolute bottom-0 right-0 w-4 h-4 cursor-se-resize hover:bg-${theme.accent}/50 transition-colors`}
           style={{ clipPath: "polygon(100% 0, 100% 100%, 0 100%)" }}
         />
       </div>

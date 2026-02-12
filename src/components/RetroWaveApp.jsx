@@ -4,6 +4,8 @@ import DraggableIcon from "./Icon";
 import DraggableWindow from "./DraggableWindow";
 import BatTerminal from "./BatTerminal";
 import NyanTimeline from "./NyanTimeline";
+import MinecraftRoom from "./PixelDino"; // Ensure this matches your filename
+import AnniversaryVideo from "./AnniversaryVideo";
 
 const RetroWaveApp = () => {
   const [windows, setWindows] = useState([]);
@@ -11,65 +13,19 @@ const RetroWaveApp = () => {
   const clickSoundRef = useRef(null);
 
   /* -------------------- ICON CONFIG -------------------- */
-
   const icons = [
-    {
-      id: "cat",
-      image: "/cat.png",
-      alt: "Cat",
-      position: { x: 50, y: 80 },
-      title: "Cat Adventure",
-    },
-    {
-      id: "baty",
-      image: "/baty.png",
-      alt: "Batman",
-      position: {
-        x: window.innerWidth - 300,
-        y: window.innerHeight - 250,
-      },
-      title: "Batman Portal",
-      size: "w-80 h-80",
-    },
-    {
-      id: "dino",
-      image: "/dino.png",
-      alt: "Dinosaur",
-      position: { x: window.innerWidth / 2 - 100, y: 100 },
-      title: "Dino World",
-    },
-    {
-      id: "car",
-      image: "/car.png",
-      alt: "Car",
-      position: { x: window.innerWidth - 280, y: 80 },
-      title: "Car Collection",
-    },
-    {
-      id: "spiderman",
-      image: "/spiderman.png",
-      alt: "Spiderman",
-      position: { x: 100, y: window.innerHeight - 250 },
-      title: "Spiderman Portal",
-    },
-    {
-      id: "froggy",
-      image: "/froggy.png",
-      alt: "Frog",
-      position: {
-        x: window.innerWidth / 2 - 80,
-        y: window.innerHeight - 220,
-      },
-      title: "Froggy Land",
-    },
+    { id: "cat", image: "/cat.png", alt: "Cat", position: { x: 50, y: 80 }, title: "Cat Adventure" },
+    { id: "baty", image: "/baty.png", alt: "Batman", position: { x: window.innerWidth - 300, y: window.innerHeight - 250 }, title: "Batman Portal", size: "w-80 h-80" },
+    { id: "dino", image: "/dino.png", alt: "Dinosaur", position: { x: window.innerWidth / 2 - 100, y: 100 }, title: "Dino World" },
+    { id: "car", image: "/car.png", alt: "Car", position: { x: window.innerWidth - 280, y: 80 }, title: "Car Collection" },
+    { id: "spiderman", image: "/spiderman.png", alt: "Spiderman", position: { x: 100, y: window.innerHeight - 250 }, title: "Spiderman Portal" },
+    { id: "froggy", image: "/froggy.png", alt: "Frog", position: { x: window.innerWidth / 2 - 80, y: window.innerHeight - 220 }, title: "Froggy Land" },
   ];
 
   /* -------------------- AUDIO SETUP -------------------- */
-
   useEffect(() => {
     const script = document.createElement("script");
-    script.src =
-      "https://cdnjs.cloudflare.com/ajax/libs/howler/2.2.3/howler.min.js";
+    script.src = "https://cdnjs.cloudflare.com/ajax/libs/howler/2.2.3/howler.min.js";
     script.async = true;
 
     script.onload = () => {
@@ -87,24 +43,28 @@ const RetroWaveApp = () => {
     };
 
     document.body.appendChild(script);
-
     return () => {
       Object.values(hoverSoundRefs.current).forEach((s) => s?.unload());
       clickSoundRef.current?.unload();
     };
   }, []);
 
-  const playHoverSound = (id) => {
-    const sound = hoverSoundRefs.current[id];
-    if (sound && !sound.playing()) sound.play();
+  /* -------------------- WINDOW LOGIC -------------------- */
+  const bringToFront = (id) => {
+    setWindows((prev) => {
+      const activeWindow = prev.find((w) => w.id === id);
+      if (!activeWindow) return prev;
+      const rest = prev.filter((w) => w.id !== id);
+      return [...rest, activeWindow]; 
+    });
   };
 
   const playClickSound = (icon) => {
     clickSoundRef.current?.play();
-
     const existing = windows.find((w) => w.iconId === icon.id);
+    
     if (existing) {
-      closeWindow(existing.id);
+      bringToFront(existing.id); // If already open, just bring to front
       return;
     }
 
@@ -116,65 +76,48 @@ const RetroWaveApp = () => {
       y: Math.random() * (window.innerHeight - 400),
     };
 
-    setWindows([newWindow]);
+    setWindows((prev) => [...prev, newWindow]);
   };
 
   const closeWindow = (id) => {
     setWindows((prev) => prev.filter((w) => w.id !== id));
   };
 
-  /* -------------------- WINDOW CONTENT -------------------- */
-
   const renderWindowContent = (window) => {
     switch (window.iconId) {
       case "baty":
-        return (
-          <BatTerminal
-            windowId={window.id}
-            onClose={() => closeWindow(window.id)}
-          />
-        );
-
+        return <BatTerminal windowId={window.id} onClose={() => closeWindow(window.id)} />;
       case "cat":
         return <NyanTimeline windowId={window.id} />;
-
+      case "dino":
+        return <MinecraftRoom windowId={window.id} />;
+      case "froggy":
+        return <AnniversaryVideo />;
       default:
         return (
           <div className="flex flex-col items-center justify-center h-full bg-white p-8 text-center text-amber-900">
             <h2 className="text-2xl font-bold mb-4">🚧 Work in Progress</h2>
-            <p className="mb-2">
-              <span className="font-bold">{window.title}</span> is under
-              construction.
-            </p>
+            <p className="mb-2"><span className="font-bold">{window.title}</span> is under construction.</p>
             <p className="text-xs opacity-40">ID: {window.iconId}</p>
           </div>
         );
     }
   };
 
-  /* -------------------- WINDOW THEMES -------------------- */
-
   const WINDOW_VARIANTS = {
     baty: "bat",
     cat: "nyan",
+    dino: "dino",
   };
-
-  /* -------------------- RENDER -------------------- */
 
   return (
     <div className="fixed inset-0 bg-amber-50 overflow-hidden">
       {/* Center Text */}
-      <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none z-50">
-        <h1
-          className="text-8xl font-bold text-amber-900 tracking-wider"
-          style={{ fontFamily: "monospace" }}
-        >
+      <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none z-0">
+        <h1 className="text-8xl font-bold text-amber-900 tracking-wider" style={{ fontFamily: "monospace" }}>
           Welcome To Our Space!
         </h1>
-        <p
-          className="text-4xl text-amber-700 mt-8"
-          style={{ fontFamily: "monospace" }}
-        >
+        <p className="text-4xl text-amber-700 mt-8" style={{ fontFamily: "monospace" }}>
           Play and have fun
         </p>
       </div>
@@ -187,34 +130,33 @@ const RetroWaveApp = () => {
           alt={icon.alt}
           initialPosition={icon.position}
           size={icon.size}
-          onHover={() => playHoverSound(icon.id)}
+          onHover={() => {
+              const sound = hoverSoundRefs.current[icon.id];
+              if (sound && !sound.playing()) sound.play();
+          }}
           onClick={() => playClickSound(icon)}
         />
       ))}
 
-      {/* Windows */}
-      {windows.map((window) => (
+      {/* Windows Stacking Logic */}
+      {windows.map((window, index) => (
         <DraggableWindow
           key={window.id}
           title={window.title}
           initialX={window.x}
           initialY={window.y}
           onClose={() => closeWindow(window.id)}
+          onFocus={() => bringToFront(window.id)}
+          zIndex={1000 + index}
           variant={WINDOW_VARIANTS[window.iconId] || "default"}
         >
           {renderWindowContent(window)}
         </DraggableWindow>
       ))}
 
-      {/* Wave */}
       <Wave />
 
-      {/* Badge */}
-      <div className="fixed top-4 left-4 bg-amber-900 text-amber-100 px-6 py-3 rounded-lg shadow-lg font-mono text-lg z-50">
-        Retro Wave App
-      </div>
 
-      {/* Shake Animation */}
       <style>{`
         @keyframes shake {
           0%, 100% { transform: translateX(0) rotate(0deg); }
@@ -223,9 +165,7 @@ const RetroWaveApp = () => {
           60% { transform: translateX(-2px) rotate(-1deg); }
           80% { transform: translateX(2px) rotate(1deg); }
         }
-        .animate-shake {
-          animation: shake 0.5s ease-in-out;
-        }
+        .animate-shake { animation: shake 0.5s ease-in-out; }
       `}</style>
     </div>
   );
